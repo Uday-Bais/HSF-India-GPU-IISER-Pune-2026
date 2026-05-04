@@ -5,6 +5,17 @@
 #include <iomanip>
 #include <algorithm>
 #include <numeric>
+#include <filesystem>
+#include <stdexcept>
+
+namespace {
+void check_cuda(cudaError_t status, const char* operation)
+{
+    if (status != cudaSuccess) {
+        throw std::runtime_error(std::string(operation) + " failed: " + cudaGetErrorString(status));
+    }
+}
+}
 
 // CUDA kernel to test neural network evaluation
 template<unsigned num_input, unsigned num_node>
@@ -39,16 +50,17 @@ void test_neural_network_evaluation(const std::string& json_filepath) {
     std::cout << "- Hidden nodes: " << num_node << std::endl;
     std::cout << "- Number of test cases: " << num_tests << std::endl;
     
-    // Create and initialize the model
-    std::string path, filename;
-    size_t last_slash_idx = json_filepath.find_last_of("/");
-    if (std::string::npos != last_slash_idx) {
-        path = json_filepath.substr(0, last_slash_idx + 1);
-        filename = json_filepath.substr(last_slash_idx + 1);
-    } else {
-        path = "./";
-        filename = json_filepath;
+    // Resolve model paths in a platform-safe way.
+    const std::filesystem::path model_path {json_filepath};
+    if (!std::filesystem::exists(model_path)) {
+        std::cout << "✗ Model file not found: " << model_path << std::endl;
+        return;
     }
+
+    const auto parent = model_path.parent_path();
+    const std::string path = parent.empty() ? "./" : (parent.string() + std::filesystem::path::preferred_separator);
+    const std::string filename = model_path.filename().string();
+
     Allen::MVAModels::SingleLayerFCNN<num_input, num_node> model("test_model", filename);
     
     try {
@@ -74,41 +86,50 @@ void test_neural_network_evaluation(const std::string& json_filepath) {
     }
     
     // Allocate device memory
-    float* device_input;
-    float* device_output;
-    
-    cudaMalloc(&device_input, num_tests * num_input * sizeof(float));
-    cudaMalloc(&device_output, num_tests * sizeof(float));
-    
-    // Copy input data to device
-    cudaMemcpy(device_input, host_input.data(), 
-               num_tests * num_input * sizeof(float), 
-               cudaMemcpyHostToDevice);
-    
-    // Launch kernel
-    int block_size = 256;
-    int grid_size = (num_tests + block_size - 1) / block_size;
-    
-    std::cout << "Launching CUDA kernel..." << std::endl;
-    std::cout << "Grid size: " << grid_size << ", Block size: " << block_size << std::endl;
-    
-    test_neural_network_kernel<<<grid_size, block_size>>>(
-        model.getDevicePointer(), device_input, device_output, num_tests);
-    
-    // Check for kernel launch errors
-    cudaError_t kernel_error = cudaGetLastError();
-    if (kernel_error != cudaSuccess) {
-        std::cout << "✗ CUDA kernel launch error: " << cudaGetErrorString(kernel_error) << std::endl;
+    float* device_input = nullptr;
+    float* device_output = nullptr;
+
+    try {
+        check_cuda(cudaMalloc(&device_input, num_tests * num_input * sizeof(float)), "cudaMalloc(device_input)");
+        check_cuda(cudaMalloc(&device_output, num_tests * sizeof(float)), "cudaMalloc(device_output)");
+
+        // Copy input data to device
+        check_cuda(
+            cudaMemcpy(
+                device_input,
+                host_input.data(),
+                num_tests * num_input * sizeof(float),
+                cudaMemcpyHostToDevice),
+            "cudaMemcpy(host_input -> device_input)");
+
+        // Launch kernel
+        int block_size = 256;
+        int grid_size = (num_tests + block_size - 1) / block_size;
+
+        std::cout << "Launching CUDA kernel..." << std::endl;
+        std::cout << "Grid size: " << grid_size << ", Block size: " << block_size << std::endl;
+
+        test_neural_network_kernel<<<grid_size, block_size>>>(
+            model.getDevicePointer(), device_input, device_output, num_tests);
+
+        check_cuda(cudaGetLastError(), "kernel launch");
+        check_cuda(cudaDeviceSynchronize(), "cudaDeviceSynchronize");
+
+        // Copy results back to host
+        check_cuda(
+            cudaMemcpy(
+                host_output.data(),
+                device_output,
+                num_tests * sizeof(float),
+                cudaMemcpyDeviceToHost),
+            "cudaMemcpy(device_output -> host_output)");
+    }
+    catch (const std::exception& e) {
+        if (device_input) cudaFree(device_input);
+        if (device_output) cudaFree(device_output);
+        std::cout << "✗ CUDA runtime error: " << e.what() << std::endl;
         return;
     }
-    
-    // Wait for kernel to complete
-    cudaDeviceSynchronize();
-    
-    // Copy results back to host
-    cudaMemcpy(host_output.data(), device_output, 
-               num_tests * sizeof(float), 
-               cudaMemcpyDeviceToHost);
     
     // Display results
     std::cout << "\n=== Test Results ===" << std::endl;
@@ -167,8 +188,12 @@ int main(int argc, char* argv[]) {
     }
     
     // Check CUDA device
-    int device_count;
-    cudaGetDeviceCount(&device_count);
+    int device_count = 0;
+    cudaError_t device_status = cudaGetDeviceCount(&device_count);
+    if (device_status != cudaSuccess) {
+        std::cout << "✗ Failed to query CUDA devices: " << cudaGetErrorString(device_status) << std::endl;
+        return 1;
+    }
     
     if (device_count == 0) {
         std::cout << "✗ No CUDA devices found!" << std::endl;
@@ -176,7 +201,11 @@ int main(int argc, char* argv[]) {
     }
     
     cudaDeviceProp prop;
-    cudaGetDeviceProperties(&prop, 0);
+    cudaError_t prop_status = cudaGetDeviceProperties(&prop, 0);
+    if (prop_status != cudaSuccess) {
+        std::cout << "✗ Failed to query CUDA device properties: " << cudaGetErrorString(prop_status) << std::endl;
+        return 1;
+    }
     std::cout << "Using CUDA device: " << prop.name << std::endl;
     std::cout << "Compute capability: " << prop.major << "." << prop.minor << std::endl;
     

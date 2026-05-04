@@ -6,6 +6,7 @@
 #include <cuda_runtime.h>
 #include <map>
 #include <fstream>
+#include <stdexcept>
 #include <nlohmann/json.hpp>
 
 // Mock Allen namespace functions
@@ -15,13 +16,19 @@ namespace Allen {
         memcpyDeviceToHost = cudaMemcpyDeviceToHost,
         memcpyDeviceToDevice = cudaMemcpyDeviceToDevice
     };
+
+    inline void check_cuda(cudaError_t status, const char* operation) {
+        if (status != cudaSuccess) {
+            throw std::runtime_error(std::string(operation) + " failed: " + cudaGetErrorString(status));
+        }
+    }
     
     inline void malloc(void** ptr, size_t size) {
-        cudaMalloc(ptr, size);
+        check_cuda(cudaMalloc(ptr, size), "cudaMalloc");
     }
     
     inline void memcpy(void* dst, const void* src, size_t size, MemcpyKind kind) {
-        cudaMemcpy(dst, src, size, (cudaMemcpyKind)kind);
+        check_cuda(cudaMemcpy(dst, src, size, (cudaMemcpyKind)kind), "cudaMemcpy");
     }
 }
 

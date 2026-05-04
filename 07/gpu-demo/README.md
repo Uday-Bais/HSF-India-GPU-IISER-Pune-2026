@@ -24,7 +24,7 @@ A CUDA-accelerated single-layer fully connected neural network implementation fo
 - `nn_gen/json_generator.cpp` - Utility to generate random model parameters
 - `mock_dependencies.h` - Mock implementations for Allen framework dependencies
 - `CMakeLists.txt` - Build system configuration for CMake
-- `test_model.json` - Example generated model parameters
+- Generated JSON model files such as `test_model.json` - Created by `json_generator` during the workflow
 
 ## Compilation
 
@@ -36,35 +36,37 @@ A CUDA-accelerated single-layer fully connected neural network implementation fo
 - CMake (3.18+)
 - nlohmann-json library (system-wide installation)
 
+All commands below assume you are running them from the `07/gpu-demo` directory.
+
 ### Build Commands
 
 ```bash
-# Create a build directory
-mkdir build
-cd build
-
 # Configure the project
-cmake ..
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+# Optional example for a Turing GPU
+# cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CUDA_ARCHITECTURES=75
 
 # Compile the executables
-make
+cmake --build build --config Release
 ```
 
-This will create two executables in the `build` directory: `json_generator` and `neural_network_test`.
+On Linux or WSL with Makefiles or Ninja, this will usually create `json_generator` and `neural_network_test` under `build/`.
+On Windows with a multi-config generator such as Visual Studio, they are typically under `build/Release/`.
 
 ### GPU Architecture Support
 
-The `CMakeLists.txt` is configured to compile for `sm_75` (NVIDIA Turing). You can edit the `CMakeLists.txt` file to change the target architecture if needed.
+The current `CMakeLists.txt` does not hard-code a single CUDA architecture. If you want to target a specific GPU family explicitly, pass `CMAKE_CUDA_ARCHITECTURES` during configuration.
 
-- `sm_60`: GTX 10 series (GTX 1060, 1070, 1080)
-- `sm_70`: Titan V, GTX 16 series
-- `sm_75`: RTX 20 series (RTX 2060, 2070, 2080)
-- `sm_86`: RTX 30 series (RTX 3060, 3070, 3080, 3090)
-- `sm_89`: RTX 40 series (RTX 4060, 4070, 4080, 4090)
+- `60` or `61`: Pascal / GTX 10 series
+- `70`: Volta / Titan V
+- `75`: Turing / RTX 20 series and GTX 16 series
+- `86`: Ampere / RTX 30 series
+- `89`: Ada / RTX 40 series
 
 ## Usage
 
-All commands should be run from the `build` directory.
+Most usage examples below assume you are running them from the `build` directory on Linux or WSL.
 
 ### 1. Generate Random Model
 
@@ -77,6 +79,8 @@ Example:
 ```bash
 ./json_generator 4 8 ../my_model.json
 ```
+
+If you use Visual Studio on Windows, run the executable from `build/Release/` instead.
 
 ### 2. Run Neural Network Test
 
