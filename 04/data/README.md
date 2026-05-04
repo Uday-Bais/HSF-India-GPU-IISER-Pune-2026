@@ -8,7 +8,7 @@ Currently present in this checkout:
   Verification: matches the notebook expectation `SMHiggsToZZTo4L.root:Events` and contains the required `Electron_pt`, `Electron_eta`, `Electron_phi`, and `Electron_charge` branches.
 - `Mudemo.root`
   Source: https://opendata.cern.ch/record/5001
-  Verification: this is not the file expected by the current Session 04 notebooks. It contains histogram objects under `demo/` and does not provide the project notebook input `dimuon_mass.root:tree/mass`.
+  Verification: this is not the file expected by the current Session 04 notebooks. It contains histogram objects under `demo/` and does not provide the project notebook input `dimuon_mass.root:tree/mass` directly.
 
 Confirmed public source:
 - `SMHiggsToZZTo4L.root`: CERN Open Data record 12361
@@ -23,7 +23,7 @@ Expected by the local Session 04 notebooks:
 Current compatibility status:
 - `SMHiggsToZZTo4L.root`: verified working for `Session3_Python-GPU_HEP.ipynb`, `lesson-4-workbook.ipynb`, and the ROOT-only rewrite of Exercise 1 in `lesson-4-project.ipynb`.
 - `dimuon_mass.root`: still missing.
-- `Mudemo.root`: present, but not a compatible replacement for `dimuon_mass.root`.
+- `Mudemo.root`: present. Not a direct replacement for `dimuon_mass.root`, but `lesson-4-project.ipynb` now uses `demo/GMmass_extended` as an approximate fallback for Exercise 2 by expanding histogram bin centers into sample masses.
 
 Related upstream course formats used in other lessons:
 - `SMHiggsToZZTo4L.json`
