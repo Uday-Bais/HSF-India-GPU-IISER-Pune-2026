@@ -35,23 +35,25 @@ Presentations:
   - Main notebook: `Streaming and Visual Profiling.ipynb`
   - Subfolders: Vector addition, kernel initialization, prefetch checks, stream introduction, manual memory allocation, overlap transfer, n-body simulation, and editable files
 
-- **04/** – Additional CUDA modules  
-  - Notebooks: `lesson-5-project.ipynb`, `lesson-5-workbook.ipynb`, `Session3_Python-GPU_HEP.ipynb`
+- **04/** – Python on GPUs and HEP examples  
+  - Main walkthrough notebook: `Session3_Python-GPU_HEP.ipynb`
+  - Practice notebooks: `lesson-4-workbook.ipynb`, `lesson-4-project.ipynb`
+  - Supporting assets: `data/`, `img/`
 
-- **05/** – Generator tutorials  
-  - Notebooks: `generator_tutorial_gpu.ipynb`, `generator_tutorial_gpu_annotated.ipynb`
+- **05/** – Particle physics generators and GPU-friendly analysis  
+  - Notebook: `generator_tutorial_gpu_annotated.ipynb`
 
-- **06/** – HEP analysis and demos  
-  - Notebooks: `gpu_dd4hep_tilecal.ipynb`
+- **06/** – GPU-accelerated Geant4, TileCal geometry, and Celeritas  
+  - Notebook: `gpu_dd4hep_tilecal.ipynb`
   - Documentation: `gpu_geant4_dd4hep_cuda_notebook.md`
-  - Tutorials: `particle_physics_generators_tutorial.ipynb`
+  - Geometry input: `TileTB_2B1EB_nobeamline.gdml`
 
-- **07/** – Neural Network Demos and Analysis Scripts  
-  - Notebooks: `cuda_neural_network_demo_complete.ipynb`
-  - Scripts: `verify_notebook.py`
-  - Demos: `gpu-demo/`
+- **07/** – Neural Network demo walkthrough and supporting code  
+  - Walkthrough notebook: `cuda_neural_network_demo_complete.ipynb`
+  - Script: `verify_notebook.py`
+  - Demo source tree: `gpu-demo/`
 
-- **08/** – Miscellaneous challenges and verification  
+- **08/** – GPU challenge: N-body optimization exercise  
   - Code: `01-nbody.cu`
   - Notebook: `GPU challenge.ipynb`
 
@@ -86,7 +88,7 @@ Each module contains Jupyter notebooks (`.ipynb`) with explanations, code sample
 3. Follow the step-by-step exercises in each module.
 4. Use the verification script to analyze or extract code from notebooks:
      ```sh
-     python 08/verify_notebook.py <notebook_path>
+    python 07/verify_notebook.py <notebook_path>
      ```
 
 ## License
