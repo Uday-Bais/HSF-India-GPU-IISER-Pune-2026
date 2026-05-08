@@ -57,6 +57,11 @@ Presentations:
   - Code: `01-nbody.cu`
   - Notebook: `GPU challenge.ipynb`
 
+- **09/** – Ray tracing, RT hardware, and physics transport tutorial  
+  - Notebook: `RT_cores_ray_tracing_tutorial.ipynb`
+  - Editable examples in `edit/`: CPU ray-tracing baseline, NVIDIA-style CUDA ray tracer, and a minimal OptiX project skeleton
+  - Covers a CPU ray-tracing baseline, RT acceleration concepts, external runnable example files, side-by-side NVIDIA/AMD/Intel ecosystem notes, and a physics-oriented photon propagation example for distant-galaxy light transport
+
 
 
 ## Notebooks
@@ -69,6 +74,7 @@ Each module contains Jupyter notebooks (`.ipynb`) with explanations, code sample
 - Streaming and concurrency
 - Profiling and performance analysis
 - HEP event generation and analysis
+- Ray tracing hardware and photon transport modeling
 - Neural network demos
 
 
