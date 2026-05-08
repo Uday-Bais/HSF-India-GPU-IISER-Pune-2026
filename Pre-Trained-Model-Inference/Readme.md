@@ -36,4 +36,4 @@ From the `build` directory:
 > Replace `../network.json` and `../input.json` with the appropriate paths to your network configuration and input data.
 
 
-Contributions or feedback are welcome!
+Feedback are welcome!
